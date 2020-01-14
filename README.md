@@ -34,7 +34,7 @@ https://github.com/tangtongda/springboot-advice.git
     </snapshotRepository>
 </distributionManagement>
 ```
-如果项目已经微服务化，将依赖添加到公共依赖中保证所有服务都可以用，普通springboot项目直接即可
+如果项目已经微服务化，将依赖添加到公共依赖中保证所有服务都可以用，普通springboot项目直接添加pom依赖即可
 ```javascript
 <dependency>
     <groupId>com.tino</groupId>
