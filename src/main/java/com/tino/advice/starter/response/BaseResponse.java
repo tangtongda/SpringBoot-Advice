@@ -1,8 +1,9 @@
-package com.tino.advice.starter.exception;
+package com.tino.advice.starter.response;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.tino.advice.starter.exception.BaseErrorCode;
 
 import java.io.Serializable;
 

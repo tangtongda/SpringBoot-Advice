@@ -2,7 +2,7 @@ package com.tino.advice.starter.advice;
 
 import com.tino.advice.starter.exception.BaseErrorCode;
 import com.tino.advice.starter.exception.BaseException;
-import com.tino.advice.starter.exception.BaseResponse;
+import com.tino.advice.starter.response.BaseResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

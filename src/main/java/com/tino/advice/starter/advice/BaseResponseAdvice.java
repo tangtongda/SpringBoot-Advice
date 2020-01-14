@@ -2,7 +2,7 @@ package com.tino.advice.starter.advice;
 
 import com.tino.advice.starter.annotation.IgnoreResponseAdvice;
 import com.tino.advice.starter.config.DefaultProperties;
-import com.tino.advice.starter.exception.BaseResponse;
+import com.tino.advice.starter.response.BaseResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -38,7 +38,7 @@ public class BaseResponseAdvice implements ResponseBodyAdvice<Object> {
     public Object beforeBodyWrite(Object o, MethodParameter methodParameter, MediaType mediaType,
                                   Class<? extends HttpMessageConverter<?>> aClass, ServerHttpRequest serverHttpRequest,
                                   ServerHttpResponse serverHttpResponse) {
-        // 如果手动进行封装，判断类型防止二次封装
+        // 如果手动进行了返回封装，判断类型防止二次封装
         if (!(o instanceof BaseResponse)) {
             return BaseResponse.succeed(o);
         }
@@ -46,6 +46,8 @@ public class BaseResponseAdvice implements ResponseBodyAdvice<Object> {
     }
 
     /**
+     * 用来过滤不需要包装返回参数的接口
+     *
      * @param methodParameter
      * @return
      */

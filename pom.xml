@@ -104,12 +104,12 @@
     <distributionManagement>
         <repository>
             <id>nexus.releases</id>
-            <url>http://nexus.hgj.net/repository/releases/</url>
+            <url>你的私服域名/repository/releases/</url>
             <uniqueVersion>false</uniqueVersion>
         </repository>
         <snapshotRepository>
             <id>nexus.snapshots</id>
-            <url>http://nexus.hgj.net/repository/snapshots/</url>
+            <url>你的私服域名/repository/snapshots/</url>
             <uniqueVersion>false</uniqueVersion>
         </snapshotRepository>
     </distributionManagement>
