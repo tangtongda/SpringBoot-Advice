@@ -1,0 +1,4 @@
+
+advice:
+  exclude-packages: com.tang
+  exclude-classes: DemoController2
