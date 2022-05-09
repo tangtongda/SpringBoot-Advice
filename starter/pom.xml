@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>advice-parent</artifactId>
+        <groupId>com.github.tangtongda</groupId>
+        <version>${revision}</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>advice-starter</artifactId>
+    <name>starter</name>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <spring-boot.version>2.1.8.RELEASE</spring-boot.version>
+        <spring-cloud-openfeign.version>2.1.2.RELEASE</spring-cloud-openfeign.version>
+        <alibaba-fastjson.version>1.2.54</alibaba-fastjson.version>
+        <javaee-api.version>8.0.1</javaee-api.version>
+        <ribbon-core.version>2.7.17</ribbon-core.version>
+        <feign-core.version>10.4.0</feign-core.version>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>${javaee-api.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>5.3.19</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>tino.tang</name>
+            <email>tangtongda@gmail.com</email>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git@github.com:tangtongda/open-commons.git</connection>
+        <developerConnection>scm:git@github.com:tangtongda/open-commons.git</developerConnection>
+        <url>https://github.com/tangtongda/open-commons</url>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <failOnError>false</failOnError>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+    </build>
+
+</project>
