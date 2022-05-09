@@ -1,407 +1,242 @@
-## 代码仓库
+# SpringBoot Response & Exception Advice
 
-https://github.com/tangtongda/springboot-advice.git
+## Maven Dependency
+### XML
 
-> 参考依据：https://github.com/purgeteam/unified-dispose-springboot
-> 由于使用他人提供的方法发生了一些问题，比如：
-> 
->  1. 返回string时报Class cast exception 
->  2. 部分包下面的异常无法正常捕获 
->  3. 异常处理不能满足业务需要等等
+```xml
 
-## 如何使用
-### 1.maven
-本人提交的Sonatype的审核还没有通过，暂不支持该种方式，如果通过会传到Sonatype maven仓库中。
-但是maven依赖的方式无法自定义，比如我将错误状态码的业务异常定义为4000，如果你想改，那么maven依赖的方式不可能并不适合你，请看第二种。
-### 2.自定义（推荐）
- 1. 将代码拉到本地 git clone https://github.com/tangtongda/springboot-advice.git
- 2. 根据需要进行修改，推到自己公司的maven私服仓库（如果没有私服仓库，也可以maven install后直接依赖jar包，不过注意版本控制。）
-##### maven依赖的方式
-注意修改私服地址
-
-```javascript
-<!-- maven 私服配置 -->
-<distributionManagement>
-    <repository>
-        <id>nexus.releases</id>
-        <url>你的私服域名/repository/releases/</url>
-        <uniqueVersion>false</uniqueVersion>
-    </repository>
-    <snapshotRepository>
-        <id>nexus.snapshots</id>
-        <url>你的私服域名/repository/snapshots/</url>
-        <uniqueVersion>false</uniqueVersion>
-    </snapshotRepository>
-</distributionManagement>
-```
-如果项目已经微服务化，将依赖添加到公共依赖中保证所有服务都可以用，普通springboot项目直接添加pom依赖即可
-```javascript
 <dependency>
-    <groupId>com.tino</groupId>
-    <artifactId>advice</artifactId>
-    <version>1.0.0-RELEASE</version>
+    <groupId>com.github.tangtongda</groupId>
+    <artifactId>advice-starter</artifactId>
+    <version>${advice-starter-version}</version>
 </dependency>
+
 ```
-##### jar包方式
-mvn install 打包，在需要依赖的depencies中添加该jar包
+### Version
+   1. `1.0.0` First released version.
 
-##### 开始使用
-启动上添加@EnableGlobalDispose开启统一处理
+## How to integrate it?
+
+1. Add @EnableGlobalDispose to SpringBootApplication class(required).
+2. Add SDK config in application.yml/yaml(additional)
+3. Configuration Description
+
+```yaml
+advice:
+  # exclude packages
+  exclude-packages: com.tangtongda
+  # exclude classes for example: restFul controller class
+  exclude-classes: DemoController2
+
+```
+
+## Use
+
+### Packaging Controller Response
+
+1. You are no need to write any extra code to use the response but just return.
+2. Throw exception
+    1. Exception contains 2 types: BaseException,BizException.
+    2. Throw BaseException, for example:
+
 ```java
-/**
- * 核心服务启动类
- *
- * @author tino
- * @date 2019/7/31
- */
-@EnableGlobalDispose
-@SpringBootApplication
-public class CoreApplication extends SpringBootServletInitializer {
+    throw new BaseException(CommonErrorCode.API_GATEWAY_ERROR);
+```
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(CoreApplication.class);
-    }
+3. And you will get the response:
 
-    public static void main(String[] args) {
-        SpringApplication.run(CoreApplication.class, args);
-    }
+```json
+{
+  "data": {
+    "name": "tino",
+    "age": 30
+  },
+  "code": 200,
+  "message": null
 }
+```
 
-```
-添加或在已有的配置类上继承WebConfiguration 
-```java
-/**
- * 启动配置，目的是利用WebConfiguration 中的configureMessageConverters来处理String类型的异常
- *
- * @author tino
- * @date 2019/8/2
- */
-@Configuration
-public class CoreConfiguration extends WebConfiguration implements WebMvcConfigurer  {
-}
-```
-**异常处理：添加BusinessExceptionAdvice 用户处理全局异常**
-*注意：之所以需要建该类的原因是包路径的问题，由于BaseExceptionAdvice 所在的位置是在我定义的com.tino.advice.starter.advice下，如果你想捕获你的包下面的异常，那么必须在你的包下面继承BaseExceptionAdvice，否则实测无法正确捕获异常。或者也可以把我的代码拉到本地，修改包路径和你一样，那么也可以正确捕获*
-```java
-/**
- * 基础全局异常处理
- *
- * @author tino
- * @date 2020/1/2
- */
-@RestControllerAdvice
-public class BusinessExceptionAdvice extends BaseExceptionAdvice {
-}
+### Throw BizException.
 
-```
-**（非必须）添加BusinessErrorCode异常处理code、message枚举类**
-*如果你需要扩展业务异常的code和message，那么你必须做这一步*
+1. Create an Enum 'BizExceptionEnum' or any name you like, for example:
 
 ```java
-/**
- * 异常
- *
- * @author tino
- * @date 2019/7/31
- */
-public enum BusinessErrorCode {
-    
-    SG_USER_LOGIN_ERR(4000, "登录异常"),
+public enum BizExceptionEnum {
+    // Custom your business exception enum
+    USER_AUTH_ERROR(4001, "User authorization error."),
     ;
 
-    private Integer code;
-    private String message;
+    private final int code;
+    private final String message;
 
-    BusinessErrorCode(Integer code, String message) {
+    BizExceptionEnum(int code, String message) {
         this.code = code;
         this.message = message;
+    }
+
+    public int getCode() {
+        return code;
     }
 
     public String getMessage() {
         return message;
     }
+}      
+```
 
-    public Integer getCode() {
-        return code;
+2. Create a Class 'BizException' or any name you like, for example:
+
+```java
+public class BizException extends RuntimeException {
+
+    public BizException(Integer code, String msg) {
+        throw new BaseException(code, msg);
+    }
+
+    public BizException(BizExceptionEnum bizExceptionEnum) {
+        throw new BaseException(bizExceptionEnum.getCode(), bizExceptionEnum.getMessage());
     }
 }
 ```
 
-**如何抛出异常**
+3. Throw Business Exception.
 
 ```java
-// 抛出通用异常
-BaseException.exception(BaseErrorCode.PARAM_ERROR);
-// 抛出自定义message的业务异常
-BaseException.businessException(BusinessErrorCode.SG_USER_LOGIN_ERR.getMessage());
-// 抛出自定义code和message的异常
-BaseException.exception(BusinessErrorCode.SG_NO_LOGIN_ERR.getCode(), BusinessErrorCode.SG_NO_LOGIN_ERR.getMessage());
-
+    throw new BizException(BizExceptionEnum.USER_AUTH_ERROR);
 ```
 
-## 功能说明
-项目结构
+4. And you will get this response:
+
+```json
+{
+  "data": null,
+  "code": 4001,
+  "message": "User authorization error."
+}
+```
+
+## Project structure
+
 ```yaml
-│  .gitignore
-│  pom.xml
-│  README.md
-│  
-├─src
-│  └─main
-│      ├─java
-│      │  └─com
-│      │      └─tino
-│      │          └─advice
-│      │              │  AdviceApplication.java
-│      │              │  
-│      │              └─starter
-│      │                  ├─advice
-│      │                  │      BaseExceptionAdvice.java
-│      │                  │      BaseResponseAdvice.java
-│      │                  │      
-│      │                  ├─annotation
-│      │                  │      EnableGlobalDispose.java
-│      │                  │      IgnoreResponseAdvice.java
-│      │                  │      
-│      │                  ├─config
-│      │                  │      DefaultConfiguration.java
-│      │                  │      DefaultProperties.java
-│      │                  │      WebConfiguration.java
-│      │                  │      
-│      │                  ├─exception
-│      │                  │      BaseErrorCode.java
-│      │                  │      BaseException.java
-│      │                  │      
-│      │                  └─response
-│      │                          BaseResponse.java
-│      │                          
-│      └─resources
-│              application.yml
-│              dispose.properties
-│              
-└─target
+├───starter
+│   ├───src
+│   │   ├───main
+│   │   │   ├───java
+│   │   │   │   └───com
+│   │   │   │       └───github
+│   │   │   │           └───tangtongda
+│   │   │   │               └───advice
+│   │   │   │                   └───starter
+│   │   │   │                       ├───advice
+│   │   │   │                       ├───annotation
+│   │   │   │                       │   └───exception
+│   │   │   │                       ├───properties
+│   │   │   │                       └───response
+│   │   │   └───resources
+│   │   │       └───META-INF
+│   │   └───test
+│   │       └───java
+└───test
+├───src
+│   ├───main
+│   │   ├───java
+│   │   │   └───com
+│   │   │       └───github
+│   │   │           └───tangtongda
+│   │   │               └───advice
+│   │   │                   └───test
+│   │   │                       ├───controller
+│   │   │                       ├───entity
+│   │   │                       └───exception
+│   │   └───resources
+│   └───test
+│       └───java
+│           └───com
+│               └───github
+│                   └───tangtongda
+│                       └───advice
+│                           └───test
 ```
-## 简要说明
-#### 1.数据结构类说明
- ***BaseResponse.java*** 为统一返况：正常返回和失败返回
- 
- **成功**
-```javascript
+
+**Attention**
+
+1. You can get some function performances in `Test` module
+2. You can run the `com.github.tangtongda.advice.test.DemoControllerTest` to test the advice features.
+
+## Response Format Description
+
+1. Success
+
+```json
 {
-    "code":200,
-    "message":null,
-    "success":true,
-    "data":null
+  "code": 200,
+  "message": null,
+  "data": null
 }
 ```
-**失败**
-```javascript
+
+2. Exception
+
+```json
 {
-    "code":500,// http异常和业务异常
-    "message":null,// 自定义的message
-    "success":false,
-    "data":null // 失败时数据不返回
+  "code": 500,
+  "message": "",
+  "data": null
 }
 ```
-这里由于GET请求通常不会处理请求结果中的message，所以成功的message直接返回null，如果有需要应该由前端来定义用户看到的message
 
-***BaseErrorCodeEnum.java*** 为自定义的异常code、message基类，可以根据需要扩展
-***BaseException.java*** 为RuntimeException的子类，用来提供自定义抛出异常的方法
+## Key Annotations Function Brief
 
+1. @EnableGlobalDispose
+    1. It means Response Advice is enabled when you add the annotation.
+    2. It must be added on the header of SpringBoot Application Runner Class or load earlier Configuration class.
 
-#### 1.统一返回结果包装
-原理是通过@RestControllerAdvice注解和ResponseBodyAdvice中的beforeBodyWrite方法来拦截controller层的返回结果并包装成自己想要的样子。
+2. @IgnoreResponseAdvice
+    1. It should be added on the header of any Controller Classes or Methods which were no need to packaging response.
 
 ```java
 /**
- * 统一返回包装器
- *
- * @author tino
- * @date 2020/1/2
+ * Here is a Restful api which no need to packaging response.
  */
-@RestControllerAdvice
-public class BaseResponseAdvice implements ResponseBodyAdvice<Object> {
-
-    private DefaultProperties defaultProperties;
-
-    public BaseResponseAdvice(DefaultProperties defaultProperties) {
-        this.defaultProperties = defaultProperties;
-    }
-
-    @Override
-    public boolean supports(MethodParameter methodParameter,
-                            Class<? extends HttpMessageConverter<?>> aClass) {
-        return filter(methodParameter);
-    }
-
-    @Nullable
-    @Override
-    public Object beforeBodyWrite(Object o, MethodParameter methodParameter, MediaType mediaType,
-                                  Class<? extends HttpMessageConverter<?>> aClass, ServerHttpRequest serverHttpRequest,
-                                  ServerHttpResponse serverHttpResponse) {
-        // 如果手动进行了返回封装，判断类型防止二次封装
-        if (!(o instanceof BaseResponse)) {
-            return BaseResponse.succeed(o);
-        }
-        return o;
-    }
-
+@RestController
+@RequestMapping("/wechat")
+public class WechatController {
     /**
-     * 用来过滤不需要包装返回参数的接口
+     * Validate developer by WeChat
+     * It's a WeChat third party http callback api which need a standard response format.
      *
-     * @param methodParameter
-     * @return
-     */
-    private Boolean filter(MethodParameter methodParameter) {
-        Class<?> declaringClass = methodParameter.getDeclaringClass();
-        // 检查过滤包路径
-        long count = defaultProperties.getAdviceFilterPackage().stream()
-                .filter(l -> declaringClass.getName().contains(l)).count();
-        if (count > 0) {
-            return false;
-        }
-        // 检查<类>过滤列表
-        if (defaultProperties.getAdviceFilterClass().contains(declaringClass.getName())) {
-            return false;
-        }
-        // 检查注解是否存在
-        if (methodParameter.getDeclaringClass().isAnnotationPresent(IgnoreResponseAdvice.class)) {
-            return false;
-        }
-        return !methodParameter.getMethod().isAnnotationPresent(IgnoreResponseAdvice.class);
-    }
-}
-```
-
-#### 2.异常统一处理
-同样的原理，通过@RestControllerAdvice注解拦截所有controller，然后通过@ExceptionHandler来处理异常并返回指定结果，异常类型可以根据自身需要添加，因为考虑到返回体的包装结果大部分都是前端开发去看，所以我只处理了HTTP的常见异常，至于RPC类型的异常，我把它交给500异常统一捕获（Exception.class）。
-
-```java
-/**
- * 基础全局异常处理
- *
- * @author tino
- * @date 2020/1/2
- */
-@RestControllerAdvice
-@ResponseBody
-public class BaseExceptionAdvice {
-
-    private static Logger logger = LoggerFactory.getLogger(BaseExceptionAdvice.class);
-
-    /**
-     * 处理其他所以未知的异常
-     *
-     * @param e
-     * @return
-     */
-    @ExceptionHandler({Exception.class})
-    public BaseResponse globalExceptionHandler(Exception e) {
-        logger.error(e.getMessage(), e);
-        return BaseResponse.fail(BaseErrorCode.EXCEPTION);
-    }
-
-    /**
-     * 业务异常
-     *
-     * @param e
-     * @return
-     */
-    @ExceptionHandler({BaseException.class})
-    public BaseResponse businessExceptionHandler(BaseException e) {
-        logger.error(e.getMessage(), e);
-        return BaseResponse.fail(e.getCode(), e.getMessage());
-    }
-
-    /**
-     * 404 异常处理
-     *
-     * @param e
-     * @return
-     */
-    @ExceptionHandler(value = NoHandlerFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public BaseResponse handlerNoHandlerFoundException(NoHandlerFoundException e) {
-        logger.error(e.getMessage(), e);
-        return BaseResponse.fail(BaseErrorCode.NOT_FOUND);
-    }
-
-    /**
-     * 405 异常处理
-     *
-     * @param e
-     * @return
-     */
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public BaseResponse handlerHttpRequestMethodNotSupportedException(
-            HttpRequestMethodNotSupportedException e) {
-        logger.error(e.getMessage(), e);
-        return BaseResponse.fail(BaseErrorCode.METHOD_NOT_ALLOWED);
-    }
-
-    /**
-     * 415 异常处理
-     *
-     * @param e
-     * @return
-     */
-    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public BaseResponse handlerHttpMediaTypeNotSupportedException(
-            HttpMediaTypeNotSupportedException e) {
-        logger.error(e.getMessage(), e);
-        return BaseResponse.fail(BaseErrorCode.UNSUPPORTED_MEDIA_TYPE);
-    }
-}
-```
-#### 3.处理String类型转换错误异常
-当返回String时，会发生*BaseResponse cannot cast to String*
-```java
-/**
- * 重写configureMessageConverters，处理字符串返回cannot be cast to java.lang.String错误
- *
- * @author tino
- * @date 2020/1/2
- */
-@Configuration
-public class WebConfiguration implements WebMvcConfigurer {
-
-    @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(0, new MappingJackson2HttpMessageConverter());
-    }
-}
-
-```
-
-#### 4.自定义注解的作用
-***EnableGlobalDispose*** 的作用是用来开启全局统一返回处理，需要加在springboot启动类上
-***IgnoreResponseAdvice*** 的作用是忽略不需要封装返回结果的接口，例如【微信公众号开发】，【微信支付回调】，【支付宝支付回调】等等需要获取我方接口返回结果的三方接口。
-**切记！！否则可能发生调试不通或请求阻塞的情况**
-
-```java
-    /**
-     * GET请求校验开发者
-     *
-     * @param request
-     * @return
-     * @throws Exception
+     * @param request http request
+     * @return standard text/plain echo response without any other content.
      */
     @GetMapping("/callback")
     @IgnoreResponseAdvice
     public Long checkToken(HttpServletRequest request) {
-        // 微信加密签名
         String signature = request.getParameter("signature");
-        // 时间戳
         String timestamp = request.getParameter("timestamp");
-        // 随机数
         String nonce = request.getParameter("nonce");
-        // 随机字符串
         String echostr = request.getParameter("echostr");
-        // 通过检验signature对请求进行校验，若校验成功则原样返回echostr，表示接入成功，否则接入失败
         if (WXPublicSignUtils.checkSignature(signature, timestamp, nonce, token)) {
             return Long.parseLong(echostr);
         }
         return 0L;
     }
+}
+```
+
+## Possible Errors
+
+1. "BaseResponse cannot cast to String"
+    1. Checking the MessageConvertAutoConfiguration was registered correctly.
+    2. Or you can customize a MessageConvert by yourself, for example:
+
+```java
+
+@Configuration
+public class MessageConvertAutoConfiguration implements WebMvcConfigurer {
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        // Handle any type which you want to add a customized a message convert  
+        converters.add(0, new MappingJackson2HttpMessageConverter());
+    }
+}
 ```

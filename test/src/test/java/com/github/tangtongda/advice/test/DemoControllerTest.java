@@ -44,4 +44,14 @@ class DemoControllerTest {
   void getEntity() throws Exception {
     this.mockMvc.perform(get("/test/getEntity")).andDo(print()).andExpect(status().isOk());
   }
+
+  @Test
+  void ex() throws Exception {
+    this.mockMvc.perform(get("/test/ex")).andDo(print()).andExpect(status().isOk());
+  }
+
+  @Test
+  void bizEx() throws Exception {
+    this.mockMvc.perform(get("/test/bizEx")).andDo(print()).andExpect(status().isOk());
+  }
 }

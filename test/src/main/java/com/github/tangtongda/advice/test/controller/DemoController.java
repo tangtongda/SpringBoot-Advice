@@ -1,6 +1,10 @@
 package com.github.tangtongda.advice.test.controller;
 
+import com.github.tangtongda.advice.starter.annotation.exception.BaseException;
+import com.github.tangtongda.advice.starter.annotation.exception.CommonErrorCode;
 import com.github.tangtongda.advice.test.entity.UserEntity;
+import com.github.tangtongda.advice.test.exception.BizException;
+import com.github.tangtongda.advice.test.exception.BizExceptionEnum;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,5 +34,15 @@ public class DemoController {
     userEntity.setName("tino");
     userEntity.setAge(12);
     return userEntity;
+  }
+
+  @GetMapping("/ex")
+  public void ex() {
+    throw new BaseException(CommonErrorCode.API_GATEWAY_ERROR);
+  }
+
+  @GetMapping("/bizEx")
+  public void bizEx() {
+    throw new BizException(BizExceptionEnum.USER_AUTH_ERROR);
   }
 }

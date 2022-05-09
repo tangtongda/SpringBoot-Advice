@@ -23,7 +23,6 @@ public class BaseException extends RuntimeException {
   }
 
   /**
-   *
    * @param errorCode 异常枚举
    */
   public BaseException(CommonErrorCode errorCode) {
@@ -32,12 +31,12 @@ public class BaseException extends RuntimeException {
   }
 
   /**
-   * @param baseErrorCode
-   * @param msg
+   * @param commonErrorCode common error code
+   * @param msg message
    */
-  public BaseException(CommonErrorCode baseErrorCode, String msg) {
+  public BaseException(CommonErrorCode commonErrorCode, String msg) {
     super(msg);
-    this.code = baseErrorCode.getCode();
+    this.code = commonErrorCode.getCode();
   }
 
   public BaseException(Integer code, String msg) {

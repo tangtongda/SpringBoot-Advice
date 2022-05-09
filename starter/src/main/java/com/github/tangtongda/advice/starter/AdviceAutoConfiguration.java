@@ -1,5 +1,6 @@
 package com.github.tangtongda.advice.starter;
 
+import com.github.tangtongda.advice.starter.advice.ExceptionAdvice;
 import com.github.tangtongda.advice.starter.advice.ResponseAdvice;
 import com.github.tangtongda.advice.starter.annotation.EnableGlobalDispose;
 import com.github.tangtongda.advice.starter.properties.AdviceProperties;
@@ -35,5 +36,10 @@ public class AdviceAutoConfiguration {
   @Bean
   public ResponseAdvice responseAdvice(AdviceProperties adviceProperties) {
     return new ResponseAdvice(adviceProperties);
+  }
+
+  @Bean
+  public ExceptionAdvice responseAdvice() {
+    return new ExceptionAdvice();
   }
 }
